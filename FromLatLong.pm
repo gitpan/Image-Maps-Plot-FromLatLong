@@ -1,7 +1,7 @@
 package Image::Maps::Plot::FromLatLong; # where in the world are London.pm members?
 
-our $VERSION = 0.1;
-our $DATE = "Tue 12 Feb  2003 15:33 CET";#"Mon 28 May 09:59 2002 CET"; #"Fri 06 July 19:18 2001 BST";
+our $VERSION = 0.12;
+our $DATE = "Thu 17 November 18:50 2004";
 use 5.006;
 use strict;
 use warnings;
@@ -139,9 +139,17 @@ our @_LON = (
 #
 # Hack hack: prefix to locate our install dir
 #
-my $MOD = "$Config{installsitelib}/".__PACKAGE__;
+#my $MOD = "$Config{installsitelib}/".__PACKAGE__;
+#$MOD =~ s/::/\//g;
+#$MOD =~ s/[^\/]+$//;
+
+# MARKSTOS -at- CPAN -dot- org suggested:
+# I've not had a chance to test if this will burp
+# on relative paths/under mod_perl....
+my $MOD = __PACKAGE__;
 $MOD =~ s/::/\//g;
-$MOD =~ s/[^\/]+$//;
+$MOD = $INC{$MOD.".pm"} || '';
+$MOD =~ s/\.pm$//i;
 
 #
 # Default maps: see L<"ADDING MAPS"> to ... add maps.
@@ -388,7 +396,7 @@ sub create_imagefile { my $self=shift;
 	# Try to load the image into our object
 	die "There is no option for a map of $self->{MAP}" if not exists $MAPS{$self->{MAP}};
 	if (not -e $MAPS{$self->{MAP}}->{FILE}){
-		warn "No map for $self->{MAP}: $!" ;
+		warn "No map for $self->{MAP} at $MAPS{$self->{MAP}}->{FILE}: $!" ;
 		return undef;
 	}
 
@@ -784,14 +792,17 @@ sub _latlon_to_xy { my ($self,$map,$lat,$lon) = (@_);
 
 A method that loads a "database" hash from the specified path.
 
-Returns nothing, but does C<die> on failure.
+Returns a true value on success, C<undef> on failure.
 
 =cut
 
 sub load_db { my ($self,$dbname) = (shift,shift);
 	local *IN;
 	warn "Loading DB from $dbname...\n" if $self->{chat};
-	open IN,"$dbname" or die "Couldn't open the configuration file <$dbname> for reading";
+	if (not open IN, $dbname){
+		warn "Couldn't open the configuration file <$dbname> for reading";
+		return undef;
+	}
 	read IN, $_, -s IN;
 	close IN;
 	my $VAR1; # will come from evaluating the file produced by Data::Dumper.
@@ -799,6 +810,7 @@ sub load_db { my ($self,$dbname) = (shift,shift);
 	warn $@ if $@;
 	%locations = %{$VAR1};
 	warn "OK.\n"  if $self->{chat};
+	return 1;
 }
 
 
@@ -1062,7 +1074,7 @@ for their public-domain maps.
 
 =head1 AUTHOR
 
-Lee Goddard <lgoddard@cpan.org>
+Lee Goddard <lgoddard -at- cpan -point- org>
 
 =head1 COPYRIGHT
 
@@ -1077,5 +1089,7 @@ The public domain maps provided with this distribution are the property of their
 1;
 
 __END__
+
+matlab:
 
 axesm('mapprojection','mercator'); displaym( worldhi(mask));

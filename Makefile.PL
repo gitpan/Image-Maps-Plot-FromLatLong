@@ -11,7 +11,7 @@ WriteMakefile(
 	},
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM => 'FromLatLong.pm',
-       AUTHOR     => 'Lee Goddard <lgoddard@cpan.org>')
+       AUTHOR     => 'Lee Goddard <lgoddard-at-cpan.org>')
      : ()
     ),
 );

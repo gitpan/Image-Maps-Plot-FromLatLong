@@ -21,45 +21,55 @@ my $cwd = cwd."/";
 
 
 # Do things with maps
-my $maker = new Image::Maps::Plot::FromLatLong(
-	FONT=>'c:/winnt/fonts/arial.ttf',
-	THUMB_SIZE => '200',
-	PATH	=> cwd."/test.foo",
-);
-if (ref $maker){
-	print "ok 3\n";
-} else {
-	print "not ok 3\n";
-	die;
+if ($^O =~ /win/ig and $ENV{WINDIR}){
+	my $maker = new Image::Maps::Plot::FromLatLong(
+		FONT=>$ENV{WINDIR}.'/fonts/arial.ttf',
+		THUMB_SIZE => '200',
+		PATH	=> cwd."/test.foo",
+	);
+	if (ref $maker){
+		print "ok 3\n";
+	} else {
+		print "not ok 3\n";
+		die;
+	}
+} else{
+	print "skip 3\n";
 }
 
-if ($maker->all(cwd)){
-	print "ok 5\n";
+if ($maker){
+	if ($maker->all(cwd)){
+		print "ok 5\n";
+	} else {
+		print "no ok 5\n";
+	}
+	my $i = Image::Magick->new;
+	if ($i->BlobToImage( ${$maker->create_blob} )){
+		print "not ok 6\n";
+	} else {
+		print "ok 6\n";
+	}
+	if ($i->Write($cwd."__test__.jpg")){
+		print "not ok 7\n";
+	} else {
+		print "ok 7\n";
+		unlink "__test__.jpg";
+	}
+
+	if ($maker->create_imagefile){
+		print "ok 8\n";
+	} else {
+		print "no ok 8\n";
+	}
 } else {
-	print "no ok 5\n";
+	for (5..8){
+		print "skip $_\n";
+	}
 }
 
-my $i = Image::Magick->new;
-if ($i->BlobToImage( ${$maker->create_blob} )){
-	print "not ok 6\n";
-} else {
-	print "ok 6\n";
-}
-if ($i->Write($cwd."__test__.jpg")){
-	print "not ok 7\n";
-} else {
-	print "ok 7\n";
-	unlink "__test__.jpg";
-}
-
-if ($maker->create_imagefile){
-	print "ok 8\n";
-} else {
-	print "no ok 8\n";
-}
 
 $maker = new Image::Maps::Plot::FromLatLong(
-	FONT=>'c:/winnt/fonts/arial.ttf',
+	# FONT=>$ENV{WINDIR}.'/fonts/arial.ttf',
 	THUMB_SIZE => '200',
 	PATH	=> cwd."/test.foo",
 	DBFILE	=> undef,
@@ -72,8 +82,11 @@ if (0==scalar keys %Image::Maps::Plot::FromLatLong::locations){
 }
 
 
+%Image::Maps::Plot::FromLatLong::MAPS->{"THE WORLD"}->{FILE} = cwd."/../world.jpg";
+# $Image::Maps::Plot::FromLatLong::MAPS{'world.jpg'} = 'world.jpg';
+
 $maker = new Image::Maps::Plot::FromLatLong(
-	FONT=>'c:/winnt/fonts/arial.ttf',
+	# FONT=>$ENV{WINDIR}.'/fonts/arial.ttf',
 	THUMB_SIZE => '200',
 	PATH	=> $cwd."/Two.foo",
 	DBFILE	=> undef,
@@ -98,7 +111,9 @@ if($maker->{HTML}){
 if (2==scalar keys %Image::Maps::Plot::FromLatLong::locations){
 	print "ok 10\n";
 } else {
-	print "no ok 10\n";
+	print "no ok 10 # "
+	.(scalar keys %Image::Maps::Plot::FromLatLong::locations)
+	."\n";
 }
 chdir $cwd;
 unlink <*.*>;

@@ -1,3 +1,4 @@
+.earth.dat
 Changes
 FromLatLong.pm
 MANIFEST
@@ -10,3 +11,4 @@ world.jpg
 world_political.jpg
 world_plain.jpg
 world_paler.jpg
+META.yml                                 Module meta-data (added by MakeMaker)
